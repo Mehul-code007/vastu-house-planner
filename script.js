@@ -35,17 +35,24 @@ function clearAll() {
 function generate() {
   clearAll();
 
-  addRooms("Temple", document.getElementById("pooja").value);
-  addRooms("Bathroom", document.getElementById("bath").value);
-  addRooms("Bedroom", document.getElementById("bed").value);
-  addRooms("Living", document.getElementById("living").value);
-  addRooms("Kitchen", document.getElementById("kitchen").value);
+  const poojaVal = document.getElementById("pooja").value;
+  const bathVal = document.getElementById("bath").value;
+  const bedVal = document.getElementById("bed").value;
+  const livingVal = document.getElementById("living").value;
+  const kitchenVal = document.getElementById("kitchen").value;
+  const stairChecked = document.getElementById("stair").checked;
 
-  if (document.getElementById("stair").checked) {
+  // Rooms add 
+  addRooms("Temple", poojaVal);
+  addRooms("Bathroom", bathVal);
+  addRooms("Bedroom", bedVal);
+  addRooms("Living", livingVal);
+  addRooms("Kitchen", kitchenVal);
+
+  if (stairChecked)
     createRoom("Staircase", 240, 420, true);
-  }
 
-  validateRooms();
+  validate();
 }
 
 // ====== Add multiple rooms ======
