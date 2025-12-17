@@ -1,0 +1,9 @@
+<styles>
+body {
+  front-family: arial, sana=serif;
+  margin: 20px;
+}
+.controls input {
+  width: 55px;
+  margin-right: 10px
+}
