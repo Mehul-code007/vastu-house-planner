@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vastu House Planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.controls input {
+  width: 55px;
+  margin-right: 10px;
+}
+
+#plot {
+  width: 600px;
+  height: 600px;
+  border: 3px solid #000;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  grid-template-rows: repeat(3,1fr);
+  position: relative;
+  margin-top: 15px;
+}
+
+.zone {
+  border: 1px dashed #ccc;
+  position: relative;
+  font-size: 12px;
+  color: #999;
+}
+
+.zone span {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+
+.room {
+  width: 120px;
+  height: 70px;
+  position: absolute;
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+}
+
+.valid { background-color: #2e7d32; }
+.invalid { background-color: #c62828; }
+.stair { background-color: #455a64; }
+
+#reasonBox {
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  min-height: 30px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Vastu House Planner</h2>
+<p>Green = Correct | Red = Vastu Violation | Staircase can overlap</p>
+
+<div class="controls">
+  Temple: <input type="number" id="pooja" min="0" value="1">
+  Bathroom: <input type="number" id="bath" min="0" value="1">
+  Bedroom: <input type="number" id="bed" min="0" value="1">
+  Living: <input type="number" id="living" min="0" value="1">
+  Kitchen: <input type="number" id="kitchen" min="0" value="1">
+
+  <label>
+    <input type="checkbox" id="stair"> Staircase
+  </label>
+
+  <button onclick="generate()">Generate</button>
+</div>
+
+<div id="plot">
+  <div class="zone"><span>NW</span></div>
+  <div class="zone"><span>N</span></div>
+  <div class="zone"><span>NE</span></div>
+  <div class="zone"><span>W</span></div>
+  <div class="zone"><span>CENTER</span></div>
+  <div class="zone"><span>E</span></div>
+  <div class="zone"><span>SW</span></div>
+  <div class="zone"><span>S</span></div>
+  <div class="zone"><span>SE</span></div>
+</div>
+
+<div id="reasonBox">Drag rooms to see Vastu validation reasons.</div>
+
+<script>
+const plot = document.getElementById("plot");
+const ZONES = ['NW','N','NE','W','C','E','SW','S','SE'];
+
+const rules = {
+  Temple: ['NE'],
+  Bathroom: ['NW','SE'],
+  Bedroom: ['SW','W'],
+  Living: ['N','E','NW'],
+  Kitchen: ['SE'],
+  Staircase: ['SW','W','S']
+};
+
+const reasons = {
+  Temple: "Temple should be in North-East (Ishan corner).",
+  Bathroom: "Bathroom should be in North-West or South-East.",
+  Bedroom: "Bedroom is best placed in South-West or West.",
+  Living: "Living room should be in North, East, or North-West.",
+  Kitchen: "Kitchen should be in South-East (Agni corner).",
+  Staircase: "Staircase is preferred in South, West, or South-West."
+};
+
+let rooms = [];
+
+function clearAll() {
+  rooms.forEach(r => r.remove());
+  rooms = [];
+}
+
+function generate() {
+  clearAll();
+
+  addRooms("Temple", pooja.value);
+  addRooms("Bathroom", bath.value);
+  addRooms("Bedroom", bed.value);
+  addRooms("Living", living.value);
+  addRooms("Kitchen", kitchen.value);
+
+  if (stair.checked)
+    createRoom("Staircase", 240, 420, true);
+
+  validate();
+}
+
+function addRooms(type, count) {
+  for (let i = 0; i < count; i++)
+    createRoom(type, 20 + i * 130, 20 + rooms.length * 15);
+}
+
+function createRoom(type, x, y, isStair=false) {
+  const d = document.createElement("div");
+  d.classList.add("room");
+  d.classList.add(isStair ? "stair" : "valid");
+  d.textContent = type;
+  d.dataset.type = type;
+  d.dataset.stair = isStair;
+  d.style.left = x + "px";
+  d.style.top = y + "px";
+  plot.appendChild(d);
+
+  d.lastX = x;
+  d.lastY = y;
+
+  makeDraggable(d);
+  rooms.push(d);
+}
+
+function makeDraggable(el) {
+  let ox, oy;
+
+  el.onmousedown = e => {
+    ox = e.offsetX;
+    oy = e.offsetY;
+    document.onmousemove = move;
+    document.onmouseup = stop;
+  };
+
+  function move(e) {
+    const p = plot.getBoundingClientRect();
+    let x = e.clientX - p.left - ox;
+    let y = e.clientY - p.top - oy;
+
+    x = Math.max(0, Math.min(x, p.width - el.offsetWidth));
+    y = Math.max(0, Math.min(y, p.height - el.offsetHeight));
+
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+
+    if (el.dataset.stair !== "true" && overlap(el)) {
+      el.style.left = el.lastX + "px";
+      el.style.top = el.lastY + "px";
+    } else {
+      el.lastX = x;
+      el.lastY = y;
+    }
+
+    validate();
+  }
+
+  function stop() {
+    document.onmousemove = null;
+    document.onmouseup = null;
+  }
+}
+
+function overlap(t) {
+  const a = t.getBoundingClientRect();
+  return rooms.some(r => {
+    if (r === t || r.dataset.stair === "true") return false;
+    const b = r.getBoundingClientRect();
+    return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+  });
+}
+
+function getZone(el) {
+  const r = el.getBoundingClientRect();
+  const p = plot.getBoundingClientRect();
+  const col = Math.floor((r.left + r.width / 2 - p.left) / (p.width / 3));
+  const row = Math.floor((r.top + r.height / 2 - p.top) / (p.height / 3));
+  return ZONES[row * 3 + col];
+}
+
+function validate() {
+  const box = document.getElementById("reasonBox");
+  box.textContent = "All rooms are Vastu compliant.";
+
+  rooms.forEach(r => {
+    if (r.dataset.stair === "true") return;
+
+    const currentZone = getZone(r);
+    const allowedZones = rules[r.dataset.type];
+
+    r.classList.remove("valid", "invalid");
+
+    if (allowedZones.includes(currentZone)) {
+      r.classList.add("valid");
+      r.title = r.dataset.type + " is correctly placed.";
+    } else {
+      r.classList.add("invalid");
+      const msg = `${r.dataset.type} is in ${currentZone}. ${reasons[r.dataset.type]}`;
+      r.title = msg;
+      box.textContent = msg;
+    }
+  });
+}
+</script>
+
+</body>
+</html>
