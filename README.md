@@ -31,7 +31,8 @@ VastuHome Planner is a web-based application that allows users to plan their hom
  * Remedies Generator: If a room is misplaced, the app suggests scientific Vastu remedies (e.g., specific colors or mirror placements).
 
    
-👥 The Team;
+👥 The Team
+
 | Arnav Kotnala| Vastu Logic Architect | Developed the core algorithm that maps room coordinates to Vastu rules. |
 | Anubhav Bisht | Frontend | Built the interactive UI and the dynamic layout visualization board. |
 | Mehul| Backend Developer | Managed API endpoints, data persistence, and result generation. |
