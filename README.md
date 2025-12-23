@@ -47,5 +47,6 @@ Prerequisites
 
 🔗 Links
  * Live Demo: 
- * Video Presentation: 
+ * Video Presentation:
+   
 Developed for Innovex 2025 | Bridging Tradition with Technology.
