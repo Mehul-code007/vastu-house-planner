@@ -45,8 +45,7 @@ Prerequisites
  * npm or yarn
 
 
-🔗 Links
- * Live Demo: 
- * Video Presentation:
+🔗 Links 
+ * Video Presentation: https://drive.google.com/drive/folders/1iQxcWYH8SshARuwpgkI5avuheNZk0Kje
    
 Developed for Innovex 2025 | Bridging Tradition with Technology.
