@@ -1,4 +1,3 @@
-// ====== Vastu House Planner Script ======
 
 const plot = document.getElementById("plot");
 const reasonBox = document.getElementById("reasonBox");
@@ -88,13 +87,24 @@ function createRoom(type, x, y, isStair = false) {
 function makeDraggable(el) {
   let offsetX, offsetY;
 
-  el.onmousedown = e => {
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
+  
+  el.onmousedown = start;
+  el.ontouchstart = (e) => start(e.touches[0]);
 
-    document.onmousemove = move;
+  function start(e) {
+    const rect = el.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+
+    document.onmousemove = (ev) => move(ev);
     document.onmouseup = stop;
-  };
+
+    document.ontouchmove = (ev) => {
+      if (ev.cancelable) ev.preventDefault(); 
+      move(ev.touches[0]);
+    };
+    document.ontouchend = stop;
+  }
 
   function move(e) {
     const plotRect = plot.getBoundingClientRect();
@@ -116,12 +126,14 @@ function makeDraggable(el) {
       el.lastY = y;
     }
 
-    validateRooms();
+    validateRooms(); //
   }
 
   function stop() {
     document.onmousemove = null;
     document.onmouseup = null;
+    document.ontouchmove = null;
+    document.ontouchend = null;
   }
 }
 
